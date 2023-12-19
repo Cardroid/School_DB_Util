@@ -17,15 +17,35 @@ func main() {
 
 	if len(os.Args) < 2 {
 		ch := clipboard.Watch(context.TODO(), clipboard.FmtText)
-		flag := false
-		for data := range ch {
-			if !flag {
-				output(string(data))
-				println("Converted!")
-				flag = true
-			} else {
-				flag = false
+		temp := ""
+		blocking := false
+		go func() {
+			flag := false
+			for data := range ch {
+				if blocking {
+					flag = false
+					continue
+				}
+				if !flag {
+					output(string(data))
+					println("Converted!")
+					flag = true
+				} else {
+					flag = false
+				}
 			}
+		}()
+		for {
+			fmt.Scanf("%s", &temp)
+
+			switch strings.ToLower(temp) {
+			case "s":
+				blocking = !blocking
+				fmt.Printf("blocking: %v\n", blocking)
+			case "exit":
+				return
+			}
+			temp = ""
 		}
 	} else {
 		fpath := os.Args[1]
